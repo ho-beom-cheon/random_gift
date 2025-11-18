@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>랜덤 선물 교환 🎁</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        :root {
+            --bg-gradient: radial-gradient(circle at top, #2dd4bf 0, #0f172a 40%, #020617 100%);
+            --card-bg: rgba(15, 23, 42, 0.92);
+            --card-border: rgba(148, 163, 184, 0.3);
+            --accent: #38bdf8;
+            --accent-soft: rgba(56, 189, 248, 0.12);
+            --accent-strong: #0ea5e9;
+            --danger: #f97373;
+            --chip-bg: rgba(148, 163, 184, 0.2);
+            --chip-border: rgba(148, 163, 184, 0.4);
+            --text-main: #e5e7eb;
+            --text-soft: #9ca3af;
+            --text-strong: #f9fafb;
+            --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.75);
+            --radius-lg: 20px;
+            --radius-xl: 28px;
+            --blur-bg: blur(24px);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            background: #020617;
+            background-image: var(--bg-gradient);
+            color: var(--text-main);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+        }
+
+        .noise {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.18;
+            mix-blend-mode: soft-light;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='noStitch' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5' /%3E%3C/svg%3E");
+        }
+
+        .app-shell {
+            width: 100%;
+            max-width: 720px;
+            position: relative;
+        }
+
+        .app {
+            position: relative;
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--card-border);
+            background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.1), transparent 55%) ,
+                        radial-gradient(circle at bottom right, rgba(94, 234, 212, 0.08), transparent 55%),
+                        var(--card-bg);
+            box-shadow: var(--shadow-soft);
+            padding: 20px 18px 18px;
+            backdrop-filter: var(--blur-bg);
+            overflow: hidden;
+        }
+
+        @media (min-width: 640px) {
+            .app {
+                padding: 22px 24px 22px;
+            }
+        }
+
+        .app::before {
+            content: "";
+            position: absolute;
+            right: -60px;
+            top: -80px;
+            width: 200px;
+            height: 200px;
+            background: conic-gradient(from 180deg, rgba(56,189,248,0.8), rgba(94,234,212,0.4), transparent 70%);
+            opacity: 0.25;
+            filter: blur(12px);
+            pointer-events: none;
+        }
+
+        .header {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .title {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .title-main {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .title-main span.emoji {
+            font-size: 22px;
+            filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.8));
+        }
+
+        .title-sub {
+            font-size: 12px;
+            color: var(--text-soft);
+        }
+
+        .badge {
+            padding: 4px 9px;
+            border-radius: 999px;
+            font-size: 11px;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            background: rgba(15, 23, 42, 0.8);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-soft);
+        }
+
+        .badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 999px;
+            background: #4ade80;
+            box-shadow: 0 0 0 5px rgba(74, 222, 128, 0.25);
+        }
+
+        .section {
+            position: relative;
+            margin-top: 14px;
+            padding: 12px 10px 10px;
+            border-radius: 18px;
+            border: 1px solid rgba(148,163,184,0.25);
+            background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.95));
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-strong);
+        }
+
+        .step-pill {
+            width: 20px;
+            height: 20px;
+            border-radius: 999px;
+            font-size: 11px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15,23,42,0.9);
+            border: 1px solid rgba(148,163,184,0.5);
+            color: var(--accent-strong);
+        }
+
+        .section-hint {
+            font-size: 11px;
+            color: var(--text-soft);
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 9px 11px;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.55);
+            background: rgba(15, 23, 42, 0.85);
+            color: var(--text-main);
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, transform 0.08s ease;
+        }
+
+        input[type="text"]::placeholder {
+            color: rgba(148, 163, 184, 0.7);
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.5);
+            background: rgba(15, 23, 42, 0.95);
+            transform: translateY(-0.5px);
+        }
+
+        button {
+            border-radius: 999px;
+            border: none;
+            padding: 8px 14px;
+            font-size: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+            transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.15s ease, opacity 0.12s ease, filter 0.12s ease;
+        }
+
+        button:active {
+            transform: translateY(1px) scale(0.99);
+            box-shadow: none;
+            filter: brightness(0.96);
+        }
+
+        button.primary {
+            background: linear-gradient(to right, #38bdf8, #22c55e);
+            color: #0b1120;
+            box-shadow: 0 10px 25px rgba(34, 197, 94, 0.35);
+        }
+
+        button.primary:hover:not(:disabled) {
+            filter: brightness(1.05);
+            box-shadow: 0 12px 28px rgba(56, 189, 248, 0.45);
+        }
+
+        button.secondary {
+            background: rgba(30, 41, 59, 0.9);
+            color: var(--text-main);
+            border: 1px solid rgba(148, 163, 184, 0.5);
+        }
+
+        button.secondary:hover:not(:disabled) {
+            background: rgba(30, 41, 59, 1);
+        }
+
+        button.ghost {
+            background: transparent;
+            color: var(--text-soft);
+            border: 1px dashed rgba(148, 163, 184, 0.5);
+        }
+
+        button.ghost:hover:not(:disabled) {
+            background: rgba(15, 23, 42, 0.9);
+        }
+
+        button.danger {
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid rgba(248, 113, 113, 0.6);
+            color: #fecaca;
+        }
+
+        button:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .helper-text {
+            font-size: 11px;
+            color: var(--text-soft);
+        }
+
+        .chip-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+            min-height: 30px;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px 4px 9px;
+            border-radius: 999px;
+            border: 1px solid var(--chip-border);
+            background: var(--chip-bg);
+            font-size: 12px;
+            color: var(--text-main);
+            backdrop-filter: blur(12px);
+        }
+
+        .chip span.remove {
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 11px;
+            opacity: 0.8;
+            transition: opacity 0.1s ease, transform 0.1s ease;
+        }
+
+        .chip span.remove:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .chip-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: rgba(148, 163, 184, 0.9);
+        }
+
+        .warning {
+            font-size: 11px;
+            color: #fed7aa;
+            background: rgba(251, 146, 60, 0.08);
+            border: 1px solid rgba(251, 146, 60, 0.45);
+            padding: 7px 9px;
+            border-radius: 999px;
+            margin-top: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .warning-icon {
+            width: 14px;
+            height: 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(251,146,60,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+        }
+
+        .divider {
+            margin: 14px 0 12px;
+            border-top: 1px dashed rgba(148, 163, 184, 0.5);
+        }
+
+        .match-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .match-badge {
+            font-size: 11px;
+            color: var(--accent);
+            padding: 3px 9px;
+            border-radius: 999px;
+            background: rgba(8, 47, 73, 0.85);
+            border: 1px solid rgba(56, 189, 248, 0.6);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .match-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 999px;
+            background: #22c55e;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        @media (min-width: 540px) {
+            .cards {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        .card {
+            border-radius: 16px;
+            border: 1px solid rgba(148,163,184,0.3);
+            background: radial-gradient(circle at top left, rgba(15,23,42,0.95), rgba(15,23,42,0.98));
+            padding: 9px 9px 8px;
+            box-shadow: 0 8px 20px rgba(15,23,42,0.6);
+            position: relative;
+            overflow: hidden;
+            transform-origin: top center;
+            animation: cardIn 0.28s ease-out;
+        }
+
+        @keyframes cardIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px) scale(0.97);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at top, rgba(56,189,248,0.1), transparent 55%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .card-name {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .card-name-main {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-strong);
+        }
+
+        .card-name-sub {
+            font-size: 11px;
+            color: var(--text-soft);
+        }
+
+        .receiver {
+            font-size: 13px;
+            margin-top: 4px;
+            padding: 7px 9px;
+            border-radius: 12px;
+            background: radial-gradient(circle at left, rgba(16, 185, 129, 0.28), rgba(6, 95, 70, 0.9));
+            border: 1px solid rgba(34, 197, 94, 0.65);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transform-origin: top;
+            animation: revealIn 0.16s ease-out;
+        }
+
+        @keyframes revealIn {
+            from {
+                opacity: 0;
+                transform: scaleY(0.85) translateY(-2px);
+            }
+            to {
+                opacity: 1;
+                transform: scaleY(1) translateY(0);
+            }
+        }
+
+        .receiver.hidden {
+            display: none;
+        }
+
+        .receiver-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #bbf7d0;
+        }
+
+        .receiver-name {
+            font-weight: 700;
+            color: #ecfdf5;
+            text-shadow: 0 0 6px rgba(22, 163, 74, 0.9);
+        }
+
+        .receiver-icon {
+            font-size: 14px;
+        }
+
+        .helper-panel {
+            margin-top: 4px;
+            font-size: 11px;
+            color: var(--text-soft);
+        }
+
+        .helper-panel strong {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .footer {
+            margin-top: 12px;
+            font-size: 10px;
+            color: rgba(148, 163, 184, 0.9);
+            text-align: center;
+        }
+
+        .footer span.logo {
+            font-weight: 600;
+            color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+<div class="noise"></div>
+
+<div class="app-shell">
+    <div class="app">
+        <div class="header">
+            <div class="title">
+                <div class="title-main">
+                    <span class="emoji">🎁</span>
+                    <span>랜덤 선물 교환</span>
+                </div>
+                <div class="title-sub">
+                    친구들이 같이 모였을 때, 폰 하나로 깔끔하게 매칭하기
+                </div>
+            </div>
+            <div class="badge">
+                <span class="badge-dot"></span>
+                실시간 랜덤 매칭
+            </div>
+        </div>
+
+        <!-- 1. 친구 목록 입력 -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-title">
+                    <span class="step-pill">1</span>
+                    <span>친구 목록 입력</span>
+                </div>
+                <span class="chip-label">PARTY</span>
+            </div>
+
+            <div class="row">
+                <input id="nameInput" type="text" placeholder="친구 이름 입력 후 Enter 또는 ‘추가’ 버튼" />
+                <button class="secondary" id="addBtn">
+                    <span>추가</span>
+                    <span>＋</span>
+                </button>
+            </div>
+            <div class="helper-text">
+                예시: 철수, 영희, 민수, 지영 … &nbsp; <span style="color:#e5e7eb;">3명 이상</span>이면 가장 재밌어요.
+            </div>
+
+            <div class="chip-list" id="nameList"></div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- 2. 랜덤 매칭 -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-title">
+                    <span class="step-pill">2</span>
+                    <span>랜덤 매칭 시작</span>
+                </div>
+                <span class="section-hint">서로 <strong>자기 자신은 절대</strong> 안 나오게 매칭돼요.</span>
+            </div>
+
+            <div class="match-actions">
+                <button class="primary" id="matchBtn" disabled>
+                    <span>선물 줄 친구 랜덤 매칭하기</span>
+                    <span>🎲</span>
+                </button>
+                <button class="ghost" id="resetBtn">
+                    <span>결과 지우기</span>
+                </button>
+                <span class="match-badge" id="statusBadge" style="display:none;">
+                    <span class="match-dot"></span>
+                    새 매칭 완료!
+                </span>
+            </div>
+
+            <div class="warning" id="warningText">
+                <div class="warning-icon">!</div>
+                <span>매칭을 하려면 최소 2명 이상이 필요합니다.</span>
+            </div>
+        </section>
+
+        <div class="divider"></div>
+
+        <!-- 3. 각자 자기 차례에 확인 -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-title">
+                    <span class="step-pill">3</span>
+                    <span>한 명씩 결과 확인</span>
+                </div>
+                <span class="chip-label">SECRET</span>
+            </div>
+
+            <div class="helper-panel">
+                <strong>사용 방법</strong><br/>
+                폰을 옆 사람에게 넘기고, 각자 <strong>자기 이름 카드</strong>에서만  
+                <strong>“내가 선물 줄 사람 보기”</strong> 버튼을 눌러서 확인하세요.<br/>
+                다 봤으면 다시 버튼을 눌러 가려두고 다음 사람에게 넘기면 됩니다. 😉
+            </div>
+
+            <div class="cards" id="resultArea"></div>
+        </section>
+
+        <div class="footer">
+            단말 하나로 즐기는 선물 교환 파티 · <span class="logo">Gift Shuffle</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    const nameInput = document.getElementById('nameInput');
+    const addBtn = document.getElementById('addBtn');
+    const nameListEl = document.getElementById('nameList');
+    const matchBtn = document.getElementById('matchBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const resultArea = document.getElementById('resultArea');
+    const warningText = document.getElementById('warningText');
+    const statusBadge = document.getElementById('statusBadge');
+
+    let players = [];
+    let pairs = []; // { giver, receiver }
+
+    function renderNameList() {
+        nameListEl.innerHTML = '';
+        players.forEach((name, idx) => {
+            const chip = document.createElement('div');
+            chip.className = 'chip';
+            chip.innerHTML = `
+                <span>${name}</span>
+                <span class="remove" data-idx="${idx}">×</span>
+            `;
+            nameListEl.appendChild(chip);
+        });
+
+        // 2명 이상이어야 매칭 가능
+        matchBtn.disabled = players.length < 2;
+
+        if (players.length < 2) {
+            warningText.style.display = 'inline-flex';
+        } else {
+            warningText.style.display = 'none';
+        }
+
+        // 인원 변경 시 상태 뱃지 숨기기
+        statusBadge.style.display = 'none';
+    }
+
+    function addPlayer() {
+        const name = nameInput.value.trim();
+        if (!name) return;
+        if (players.includes(name)) {
+            alert('이미 같은 이름이 있습니다. 구분되게 입력해주세요.');
+            return;
+        }
+        players.push(name);
+        nameInput.value = '';
+        renderNameList();
+        clearResult();
+    }
+
+    function clearResult() {
+        pairs = [];
+        resultArea.innerHTML = '';
+        statusBadge.style.display = 'none';
+    }
+
+    function shuffleArray(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    // 자기 자신에게 가지 않는 랜덤 매칭(derangement)
+    function generateDerangement(n) {
+        if (n <= 1) return null;
+        const indices = Array.from({length: n}, (_, i) => i);
+        const maxAttempts = 1000;
+
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            shuffleArray(indices);
+            let ok = true;
+            for (let i = 0; i < n; i++) {
+                if (indices[i] === i) {
+                    ok = false;
+                    break;
+                }
+            }
+            if (ok) return indices;
+        }
+        return null;
+    }
+
+    function doMatch() {
+        if (players.length < 2) {
+            alert('친구를 2명 이상 추가해주세요.');
+            return;
+        }
+        const n = players.length;
+        const der = generateDerangement(n);
+        if (!der) {
+            alert('랜덤 매칭을 여러 번 시도했지만 실패했습니다. 다시 시도해주세요.');
+            return;
+        }
+
+        pairs = [];
+        for (let i = 0; i < n; i++) {
+            pairs.push({
+                giver: players[i],
+                receiver: players[der[i]]
+            });
+        }
+
+        renderResult();
+
+        // 상태 뱃지 잠깐 보여주기
+        statusBadge.style.display = 'inline-flex';
+        setTimeout(() => {
+            statusBadge.style.display = 'none';
+        }, 2000);
+    }
+
+    function renderResult() {
+        resultArea.innerHTML = '';
+        pairs.forEach((pair, idx) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            const id = 'receiver-' + idx;
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="card-name">
+                        <div class="card-name-main">${pair.giver}</div>
+                        <div class="card-name-sub">이번 선물의 주인공을 확인해보세요</div>
+                    </div>
+                    <button class="secondary reveal-btn" data-target="${id}">
+                        <span>내가 선물 줄 사람 보기</span>
+                        <span>👀</span>
+                    </button>
+                </div>
+                <div id="${id}" class="receiver hidden">
+                    <span class="receiver-icon">✨</span>
+                    <div>
+                        <div class="receiver-label">TO</div>
+                        <div class="receiver-name">${pair.receiver}</div>
+                    </div>
+                </div>
+            `;
+            resultArea.appendChild(card);
+        });
+
+        // 버튼 이벤트 등록
+        resultArea.querySelectorAll('.reveal-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetId = btn.getAttribute('data-target');
+                const panel = document.getElementById(targetId);
+                const isHidden = panel.classList.contains('hidden');
+
+                if (isHidden) {
+                    panel.classList.remove('hidden');
+                    // 재등장 애니메이션 트리거
+                    panel.style.animation = 'none';
+                    void panel.offsetWidth;
+                    panel.style.animation = '';
+                    btn.innerHTML = `<span>가리기</span><span>🙈</span>`;
+                } else {
+                    panel.classList.add('hidden');
+                    btn.innerHTML = `<span>내가 선물 줄 사람 보기</span><span>👀</span>`;
+                }
+            });
+        });
+    }
+
+    // 이벤트 바인딩
+    addBtn.addEventListener('click', addPlayer);
+    nameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addPlayer();
+        }
+    });
+
+    nameListEl.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove')) {
+            const idx = parseInt(e.target.getAttribute('data-idx'), 10);
+            players.splice(idx, 1);
+            renderNameList();
+            clearResult();
+        }
+    });
+
+    matchBtn.addEventListener('click', doMatch);
+    resetBtn.addEventListener('click', clearResult);
+
+    // 초기 렌더
+    renderNameList();
+</script>
+</body>
+</html>
